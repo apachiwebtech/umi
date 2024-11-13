@@ -13,7 +13,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import 'bootstrap/dist/js/bootstrap.min.js'
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { ScreenOrientation, OrientationType } from '@capawesome/capacitor-screen-orientation';
-import 'animate.css';
 import Login from './Authentication/Login';
 import MenuPage from './Pages/MenuPage';
 import Cart from './Pages/Cart';
@@ -24,6 +23,10 @@ import SearchPage from './Pages/SearchPage';
 import VendorPage from './Pages/VendorPage';
 import Profile from './Pages/Profile'
 import OrderHistory from './Pages/OrderHistory';
+import ProfilePage from './Pages/ProfilePage';
+import OfferPage from './Pages/OfferPage';
+import PaymentFailed from './Pages/PaymentFailed';
+import PaymentLoader from './Pages/PayemtLoader';
 
 const Dash = lazy(() => import('./Pages/Dash'));
 
@@ -59,6 +62,10 @@ const routing = createBrowserRouter([
         element: <OrderConfirm />
       },
       {
+        path: '/failed',
+        element: <PaymentFailed />
+      },
+      {
         path: '/splash',
         element: <Splash />
       },
@@ -74,8 +81,19 @@ const routing = createBrowserRouter([
         path: '/orderhistory',
         element: <OrderHistory />
       },
-
-
+      {
+        path: '/profilepage',
+        element: <ProfilePage />
+      },
+      {
+        path: '/offerpage',
+        element: <OfferPage />
+      },
+      {
+        path: '/ploader',
+        element: <PaymentLoader />
+      },
+   
 
     ]
 
@@ -102,8 +120,13 @@ function MobApp() {
   
   useEffect(() => {
     checkLocalStorageAndRedirect(navigate);
-
-
+ 
+    // const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    // if (!isMobileDevice) {
+    //   window.location.href = 'https://viggorventures.com/weblogin/pages_not_found.php';
+      
+    // }
+    
     // portrait()
 
     App.addListener('backButton', data => {
@@ -121,8 +144,6 @@ function MobApp() {
 
 
     });
-
-
 
   }, [navigate]);
 
@@ -143,7 +164,9 @@ function MobApp() {
       {window.location.pathname === '/cart' && <InnerHeader />}
       {window.location.pathname === '/orderconfirm' && <InnerHeader />}
       <Outlet />
-      {window.location.pathname === '/dash' && <Footer />}
+      {window.location.pathname === '/dash'  && <Footer />}
+      {window.location.pathname === '/failed'  && <Footer />}
+   
     </>
 
   );

@@ -1,24 +1,33 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, version } from 'react'
 import InnerHeader from '../Layout/InnerHeader'
 import SearchIcon from '@mui/icons-material/Search';
-import { BASE_URL, IMAGE_URL } from '../Utils/BaseUrl';
+import { BASE_URL, IMAGE_URL, VERSION } from '../Utils/BaseUrl';
 import axios from 'axios';
 import nonveg from '../../Images/Non.png';
 import veg from '../../Images/veg.png'
 import { useParams } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { getCartCount } from '../store/CartProvider';
+import Footer from '../Layout/Footer';
+import Notimg from '../../Images/Not.png'
+import DiscountIcon from '@mui/icons-material/Discount';
+
 
 const SearchPage = () => {
 
-    const [search , setSearch] = useState('')
+    const [search, setSearch] = useState('')
     const [popular, setPopular] = useState([])
+    const dispatch = useDispatch()
+    const { currentloc, locid } = useParams()
 
-    const {currentloc , locid} = useParams()
+
     const getPopular = async () => {
 
-        const data ={
-            locid : currentloc || locid
+        const data = {
+            locid: localStorage.getItem('lastloc'),
+            version : VERSION
         }
-        const response = await axios.post(`${BASE_URL}/products`,data);
+        const response = await axios.post(`${BASE_URL}/products`, data);
 
         // console.log(response);
         setPopular(response.data);
@@ -29,7 +38,7 @@ const SearchPage = () => {
     }, [])
 
 
-    
+
     const [itemCounts, setItemCounts] = useState({});
 
     // Function to handle item count changes
@@ -54,8 +63,8 @@ const SearchPage = () => {
                         <div className='row p-1 border rounded-3 my-1'>
                             <div className='col-4 col-md-4 '>
                                 <div className='position-relative rounded pro-img d-flex'>
-                                    <img className='rounded' src={`${IMAGE_URL}/product/` + item.upload_image} alt='' />
-                                    <h3>Upto 30% Off</h3>
+                                    <img className='rounded' src={item.upload_image !== '' ? `${ IMAGE_URL}/product/` + item.upload_image : Notimg} alt='' />
+                                    {/* <h3>Upto 30% Off</h3> */}
                                 </div>
                             </div>
 
@@ -68,18 +77,55 @@ const SearchPage = () => {
                                 {/* <p className='disc'>
                                     {item.description}
                                 </p> */}
-                                {item.type == "2" ?   <p className='disc py-1'>
-                                   Contain Eggs<span className='text-danger'>*</span>
-                                </p> : <p></p> }
-                              
+                                {item.type == "2" ? <p className='disc py-1'>
+                                    Contain Eggs<span className='text-danger'>*</span>
+                                </p> : <p></p>}
+
                                 <div className='d-flex justify-content-between align-items-center'>
-                                    <h2>Rs.{item.price}/-</h2>
+                                    <h2>Rs.{Number(item.price) + Number(item.discount_price)}/-</h2>
 
                                     <div className='menu-add-remmove d-flex align-items-center '>
                                         <button onClick={() => {
 
                                             const newCount = itemCounts[item.id] ? itemCounts[item.id] - 1 : 0;
                                             handleItemCountChange(item.id, newCount)
+
+
+
+                                            const cpercentage = (Number(item.cgst) + 100) / 100
+                                            const newCgst = Number(item.price) / cpercentage
+                                            const FCgst = Number(item.price) - newCgst
+
+                                            const spercentage = (Number(item.sgst) + 100) / 100
+                                            const newSgst = Number(item.price) / spercentage
+                                            const FSgst = Number(item.price) - newSgst
+
+                                            
+                                            const data = {
+                                                cat_id: item.cat_id,
+                                                pro_id: item.id,
+                                                pro_name: item.title,
+                                                price: item.price,
+                                                p_qty: newCount,
+                                                orderid: localStorage.getItem("orderid"),
+                                                userId: localStorage.getItem("food_id"),
+                                                v_id: item.v_id,
+                                                hsnno: item.hsnno,
+                                                cgst: item.cgst,
+                                                sgst : item.sgst,
+                                                cgstamt : FCgst,
+                                                sgstamt : FSgst
+                                            };
+
+
+                                            axios.post(`${BASE_URL}/addToCart`, data)
+                                                .then((res) => {
+                                                    if (res.data[0] && res.data[0].orderid) {
+                                                        localStorage.setItem("orderid", res.data[0].orderid);
+                                                    }
+                                                    dispatch(getCartCount())
+                                                });
+
 
                                         }} className='minus'>
                                             -
@@ -89,6 +135,16 @@ const SearchPage = () => {
                                             const newCount = (itemCounts[item.id] || 0) + 1;
                                             handleItemCountChange(item.id, newCount);
 
+
+                                            const cpercentage = (Number(item.cgst) + 100) / 100
+                                            const newCgst = Number(item.price) / cpercentage
+                                            const FCgst = Number(item.price) - newCgst
+
+                                            const spercentage = (Number(item.sgst) + 100) / 100
+                                            const newSgst = Number(item.price) / spercentage
+                                            const FSgst = Number(item.price) - newSgst
+
+
                                             const data = {
                                                 cat_id: item.cat_id,
                                                 pro_id: item.id,
@@ -96,7 +152,13 @@ const SearchPage = () => {
                                                 price: item.price,
                                                 p_qty: newCount,
                                                 orderid: localStorage.getItem("orderid"),
-                                                userId: localStorage.getItem("food_id")
+                                                userId: localStorage.getItem("food_id"),
+                                                v_id: item.v_id,
+                                                hsnno: item.hsnno,
+                                                cgst: item.cgst,
+                                                sgst: item.sgst,
+                                                cgstamt: FCgst,
+                                                sgstamt: FSgst
                                             };
 
                                             axios.post(`${BASE_URL}/addToCart`, data)
@@ -104,21 +166,28 @@ const SearchPage = () => {
                                                     if (res.data[0] && res.data[0].orderid) {
                                                         localStorage.setItem("orderid", res.data[0].orderid);
                                                     }
+                                                    dispatch(getCartCount())
                                                 });
                                         }} className='plus'>
                                             +
                                         </button>
                                     </div>
                                 </div>
+                                {item.discount_price > 0 &&   <div className='py-2'>
+                                               <span className='discount-price' style={{fontSize :"16px"}}><DiscountIcon fontSize='16px'/>Get for <span className='disc-child'>Rs. {item.price}/-</span></span>
+                                            </div> }
                             </div>
                         </div>
                     )
                 })}
 
+         
+
 
             </div>
+            <Footer />
         </div>
-        
+
     )
 }
 

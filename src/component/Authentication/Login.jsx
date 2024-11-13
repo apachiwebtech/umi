@@ -4,7 +4,7 @@ import axios from 'axios'
 import React, { useRef, useState } from 'react'
 import { BASE_URL } from '../Utils/BaseUrl'
 import Loader from '../Pages/Loader'
-import logo from '../../Images/image 1.png'
+import logo from '../../Images/LOG.jpg'
 import {useNavigate} from 'react-router-dom' 
 
 
@@ -92,14 +92,15 @@ const Login = () => {
     const [validerr, setvalidError] = useState(false)
     const [error2, setError2] = useState(false)
     const [loader, setLoader] = useState(false)
-    const [emailexist, setExist] = useState('')
+    const [emailexist, setExist] = useState(false)
+    const [locerr , setLocerr] = useState()
     const otp1Ref = useRef(null);
     const otp2Ref = useRef(null);
     const otp3Ref = useRef(null);
     const otp4Ref = useRef(null);
 
 
-
+   
     const handleGenerateOTP = () => {
         const generatedOTP = generateOTP(4); // Change 6 to the desired length of OTP
         setOTP(generatedOTP);
@@ -116,30 +117,74 @@ const Login = () => {
 
         if (value.email !== "") {
             setLoader(true)
+
+           
+
             axios.post(`${BASE_URL}/user_login`, data)
                 .then((res) => {
                     setLoader(false)
-                    if (res.data[0].id) {
+
+                    if(res.data.data == 1){
+          
+                        setError(true)
+
+                        setTimeout(() => {
+                            setError(false)
+
+                        }, 5000);
+                    }
+
+
+
+                    if(res.data.locid && res.data.locid.length == 0){
+          
+                        setLocerr(true)
+                        
+                        setTimeout(() => {
+                            
+                            setLocerr(false)
+                        }, 5000);
+                    }
+
+
+              
+
+                
+
+                    if (res.data.data && res.data.data[0].id) {
+
+                        axios.post(`https://viggorventures.com/weblogin/umi_app_sendmail.php` , data)
+
                         setShowOtp(true)
+
+
                         setHide(true)
-                        const id = res.data[0].email; // Define id here
-                        const value = res.data[0].value; // Define id here
-                        const name = res.data[0].firstname;
-                        const otp = res.data[0].otp;
-                        const mobile = res.data[0].mobile;
-                        const locid = res.data[0].locationid;
-                        const locname = res.data[0].locationname;
-                        localStorage.setItem("food_email", id)
+                        const email = res.data.data[0].email; // Define id here
+                        const value = res.data.data[0].value; // Define id here
+                        const name = res.data.data[0].firstname;
+                        const otp = res.data.data[0].otp;
+                        const mobile = res.data.data[0].mobile;
+                        // const locid = res.data[0].locationid;
+                        const locname = res.data.data[0].locationname;
+                        const companyid = res.data.data[0].companyid;
+                        const locid = res.data.locid[0].id
+                        const locationid = res.data.data[0].locationid
+
+
+                        localStorage.setItem("food_email", email)
                         localStorage.setItem("food_value", value)
                         localStorage.setItem("food_role", 1)
                         localStorage.setItem("Name", name)
                         localStorage.setItem('otp', otp)
                         localStorage.setItem('food_mobile', mobile);
-                        localStorage.setItem('locid', locid);
+                        localStorage.setItem('locid', locationid);
                         localStorage.setItem('locname', locname);
+                        localStorage.setItem('lastloc', locid);
+                        localStorage.setItem('companyid', companyid);
                     }
                     else {
                         setError(true)
+
                         setTimeout(() => {
                             setError(false)
 
@@ -180,29 +225,60 @@ const Login = () => {
         if (validateForm()) {
             setLoader(true)
 
+            
+
             axios.post(`${BASE_URL}/login`, data)
                 .then((res) => {
-                    setLoader(false)
-                    if (res.data[0].email) {
-                        setShowOtp(true)
-                        setHide(true)
 
-                        const id = res.data[0].email; // Define id here
-                        const value = res.data[0].value; // Define id here
-                        const name = res.data[0].fullname;
-                        const Mobile = res.data[0].mobile
-                        const otp = res.data[0].otp;
+                    setLoader(false)
+
+                    console.log(res.data)
+
+                    if(res.data.data == 1){
+          
+                        setExist(true)
+
+                        setTimeout(() => {
+                            setExist(false)
+                        }, 4000);
+                    }
+
+                    if (res.data.data[0].email) {
+                        setShowOtp(true)
+
+                        setHide(true)
+                        
+                        axios.post(`https://viggorventures.com/weblogin/umi_app_sendmail.php` , data)
+
+
+                        const id = res.data.data[0].email; // Define id here
+                        const value = res.data.data[0].value; // Define id here
+                        const name = res.data.data[0].firstname;
+                        const Mobile = res.data.data[0].mobile
+                        const otp = res.data.data[0].otp;
+                        // const locid = res.data.data[0].locationid;
+                        const locname = res.data.data[0].locationname;
+                        const companyid = res.data.data[0].companyid;
+                        const locid = res.data.locid[0].id
+                        const locationid = res.data.data[0].locationid
+
                         localStorage.setItem("food_email", id)
                         localStorage.setItem("food_value", value)
                         localStorage.setItem("food_mobile", Mobile)
                         localStorage.setItem("food_role", 1)
                         localStorage.setItem("Name", name)
+                        localStorage.setItem('locid', locationid);
+                        localStorage.setItem('lastloc', locid);
+                        localStorage.setItem('locname', locname);
                         localStorage.setItem('otp', otp)
+                        localStorage.setItem('companyid', companyid);
+                        
+                              
                     } else {
-                        setExist(res.data)
+                        setExist(true)
 
                         setTimeout(() => {
-                            setExist('')
+                            setExist(false)
                         }, 4000);
                     }
 
@@ -239,38 +315,31 @@ const navigate = useNavigate()
 
         axios.post(`${BASE_URL}/otp`, data)
             .then((res) => {
-                console.log(res)
 
-
-                if (res.data.length == 0) {
-                    setotpError(true)
-                    setLoader(false)
-                    // document.getElementById("err").innerHTML = "<Stack sx={{ width: '100%' }} spacing={2}><Alert variant='outlined' severity='warning'>Please enter valid otp!</Alert></Stack>"
-                    setTimeout(() => {
-                        setotpError(false)
-
-                        // document.getElementById("err").innerHTML = ""
-                    }, 2000)
-                } else {
-
-            
-
+                console.log(res.data)
+          
+                if(res.data[0].id){
                     navigate('/dash')
-                    // window.location.pathname = '/';
                     const role = res.data[0].role;
                     const value = res.data[0].value;
                     const id = res.data[0].id;
       
-
                     localStorage.setItem("food_role", role)
                     localStorage.setItem("food_value", value)
                     localStorage.setItem('food_id', id);
-                 
-
-                }
+                    localStorage.setItem('foodcat' , '')
+                }            
+             
             })
             .catch((err) => {
                 console.log(err);
+                setotpError(true)
+                setLoader(false)
+         
+                setTimeout(() => {
+                    setotpError(false)
+
+                }, 2000)
             });
     }
 
@@ -357,9 +426,9 @@ const navigate = useNavigate()
 
 
     return (
-        <>
+        <div className='' style={{background:"#E3010F"}}>
             {loader && <Loader />}
-            <div className='reg-logo text-center'>
+            <div className='reg-logo text-center' style={{height :"90px"}}>
                 <img src={logo} alt="" />
             </div>
             <div className='reg-main reg-back px-4' >
@@ -384,9 +453,10 @@ const navigate = useNavigate()
                                     </div>
 
                                     <div className='text-start'>
-                                        <TextField id="standard-basic" style={{ width: "100%" }} type='email' value={value.email} name='email' label="Email" onChange={onhandlechange} variant="standard" />
+                                        <TextField id="standard-basic" style={{ width: "100%" }} type='Enter your official email address' value={value.email} name='email' label="Email" onChange={onhandlechange} variant="standard" />
                                         {error2 && <span className='text-danger' >Please enter the email</span>}
                                         {error && <span className='text-danger'>Email id doesn't exist</span>}
+                                        {locerr && <span className='text-danger'>Location is not available</span>}
                                     </div>
                                 </div>
 
@@ -420,7 +490,7 @@ const navigate = useNavigate()
                                         {validerr.fullname && <span className='text-danger' >{validerr.fullname}</span>}
                                         <TextField id="standard-basic" className='py-2' style={{ width: "100%" }} type='email' value={value.remail} name='remail' label="Email" onChange={onhandlechange} variant="standard" />
                                         {validerr.remail && <span className='text-danger' >{validerr.remail}</span>}
-                                        <span className='text-danger'>{emailexist}</span>
+                                        {emailexist && <span className='text-danger'>Sorry you are not eligible for register</span> }
                                         <TextField id="standard-basic" className='py-2' style={{ width: "100%" }} type='number' value={value.mobile} name='mobile' label="Mobile No" onChange={onhandlechange} variant="standard" />
                                         {validerr.mobile && <span className='text-danger' >{validerr.mobile}</span>}
                                     </div>
@@ -496,11 +566,7 @@ const navigate = useNavigate()
                                     </div>
 
                                     <p className='text-danger' id="err"></p>
-                                    <div id='msg'>
-                                        {
-                                            showOtp && <Alert severity="info" >{otp}</Alert>
-                                        }
-                                    </div>
+              
 
 
 
@@ -517,7 +583,7 @@ const navigate = useNavigate()
 
 
             </div>
-        </>
+        </div>
     )
 }
 

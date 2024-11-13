@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, version } from 'react'
 
 import Carousel from "react-multi-carousel";
 import "react-multi-carousel/lib/styles.css";
-import banner from '../../../Images/1600w-xPGAjV9zPS0.webp'
-import catimg from '../../../Images/cat.png'
-import pasta from '../../../Images/pasta.jpeg'
-import dish from '../../../Images/dish.png'
 import { Link } from 'react-router-dom';
-import { BASE_URL, IMAGE_URL } from '../../Utils/BaseUrl';
+import { BASE_URL, IMAGE_URL, VERSION } from '../../Utils/BaseUrl';
 import axios from 'axios';
-const Category = () => {
+import Catskelton from '../skelton/Catskelton';
+import { styled } from '@mui/material';
+const Category = ({currentloc}) => {
     const [category, setCategory] = useState([]);
+    const [loading, setLoading] = useState(true);
 
+    
     const responsive = {
         tablet: {
             breakpoint: { max: 1024, min: 464 },
@@ -26,27 +26,35 @@ const Category = () => {
     };
 
     const getCategory = async () => {
-        const response = await axios.get(`${BASE_URL}/category`);
+        const data = {
+          locid : currentloc,
+          version: VERSION
+        }
 
-        // console.log(response.data);
+        const response = await axios.post(`${BASE_URL}/category` ,data);
+ 
         setCategory(response.data);
+        setTimeout(() => {
+            setLoading(false);
+         }, 500);
     }
     useEffect(() => {
         getCategory();
-    }, [])
+    }, [currentloc])
+
     return (
         <div>
             <div className='Cat-head'>
                 <hr />
-                <p className='p0'>CATEGORY</p>
+               {category.length > 0 &&   <p className='p0'>CATEGORY</p> }
             </div>
-            <Carousel responsive={responsive} autoPlay={true} infinite={true} arrows={false}>
+            <Carousel responsive={responsive} autoPlay={true} infinite={true} arrows={false} >
 
 
                 {
                     category.map((item) => {
                         return (
-                            <div className='text-center cat-sec  '>
+                            <div className='text-center cat-sec  ' style={{display : loading ? "none" : "block"}}>
                                 <Link to={`/menupage/${item.id}`}>
                                     <div className='circle m-auto'>
                                         <img src={`${IMAGE_URL}/category/${item.upload_image}`} alt="" />
@@ -59,6 +67,16 @@ const Category = () => {
                     })
                 }
             </Carousel>
+
+           { loading ?  <Carousel responsive={responsive} autoPlay={true} infinite={true} arrows={false}>
+                <Catskelton />
+                <Catskelton />
+                <Catskelton />
+                <Catskelton />
+                <Catskelton />
+                <Catskelton />
+            </Carousel> : null}
+
         </div>
     )
 }

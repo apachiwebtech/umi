@@ -12,6 +12,14 @@ const InnerHeader = () => {
         return 'My Cart';
       case '/orderconfirm':
         return '';
+      case '/profile':
+        return 'Edit Profile';
+      case '/orderhistory':
+        return 'Orders';
+      case '/profilepage':
+        return 'Profile';
+      case '/offerpage':
+        return 'Offer Page';
       default:
         return 'UMI';
     }

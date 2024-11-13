@@ -1,3 +1,5 @@
-// export const BASE_URL = "http://localhost:8081"
-export const BASE_URL = "https://food.thetalentclub.co.in"
-export const IMAGE_URL = 'https://thetalentclub.co.in/umi/upload';
+// export const BASE_URL = "http://localhost:8081/nodeapp"
+export const BASE_URL = "https://nodeapp.viggorventures.com/nodeapp"
+export const IMAGE_URL = 'https://viggorventures.com/upload';
+export const VERSION = "70000"
+

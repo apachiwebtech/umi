@@ -1,7 +1,11 @@
 import React from 'react'
 import boy from '../../Images/boy.png'
+import { Link } from 'react-router-dom'
 const OrderConfirm = () => {
+
+    const Finalamt = localStorage.getItem('finalamt')
     return (
+
         <div className='p-5'>
             <div style={{ width: "200px", margin: "auto" }} >
                 <img style={{ width: "100%" }} src={boy} alt='' />
@@ -12,9 +16,13 @@ const OrderConfirm = () => {
             </div>
             <div className='text-center py-5'>
                 <p>Payment Confirmed</p>
-                <p>₹ 3450</p>
+                <p>₹ {Finalamt}</p>
+            </div>
+            <div className='text-center'>
+                <Link to="/dash">Back to home</Link>
             </div>
         </div>
+        
     )
 }
 
